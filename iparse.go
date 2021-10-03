@@ -3,34 +3,32 @@ package main
 import (
 	"fmt"
 	"log"
-	"os/exec"
-	"strings"
+	"math/rand"
+
+	"time"
+
+	"github.com/zhengyi13/iparse/repos"
 )
 
-func getRepos() (repos []string) {
-	repolist, err := exec.Command("/usr/bin/dnf", "repolist").Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	lines := strings.Split(string(repolist), "\n")
-	var rs []string
-	for _, line := range lines {
-		words := strings.Fields(line)
-		if len(words) == 0 {
-			continue
-		}
-		reponame := words[0]
-		if reponame == "repo" {
-			continue
-		}
-		rs = append(rs, reponame)
-	}
-	return rs
-}
-
 func main() {
-	r := getRepos()
+	r, _ := repos.GetRepos()
+	rand.Seed(time.Now().Unix())
+
+	fmt.Println("Here are all the configured repos: ")
 	for _, repo := range r {
 		fmt.Printf("%s\n", repo)
 	}
+
+	fmt.Println("Here is a random repo's data: ")
+
+	selectedRepo := r[rand.Intn(len(r))]
+
+	rd, err := repos.GetRepoIni(selectedRepo)
+
+	if err != nil {
+		log.Fatalf("Died getting ini info: %v", err)
+	}
+
+	fmt.Printf("\n\n %s", string(rd))
+
 }
